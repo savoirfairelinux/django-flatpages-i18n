@@ -34,7 +34,18 @@ def flatpage(request, url):
     if not url.startswith('/'):
         url = '/' + url
 
-    language = request.LANGUAGE_CODE
+    # extracting the language from the URL
+    urls = filter(None, url.split("/"))
+    url_language = urls[0]
+
+    possible_languages = [l[0] for l in settings.LANGUAGES]
+
+    if url_language in possible_languages:
+        # using the URL language if it's different from the request one
+        language = url_language if url_language != request.LANGUAGE_CODE else request.LANGUAGE_CODE
+    else:
+        language = request.LANGUAGE_CODE
+
     language_prefix = '/%s' % language
 
     if url.startswith(language_prefix):
@@ -55,11 +66,10 @@ def flatpage(request, url):
         else:
             raise
 
-    return render_flatpage(request, f)
-
+    return render_flatpage(request, f, language)
 
 @csrf_protect
-def render_flatpage(request, f):
+def render_flatpage(request, f, lang):
     """
     Internal interface to the flat page view.
     """
@@ -76,8 +86,8 @@ def render_flatpage(request, f):
     # To avoid having to always use the "|safe" filter in flatpage templates,
     # mark the title and content as already safe (since they are raw HTML
     # content in the first place).
-    f.title = mark_safe(f.title)
-    f.content = mark_safe(f.content)
+    f.title = mark_safe(f.get_i18n_title(lang))
+    f.content = mark_safe(f.get_i18n_content(lang))
 
     c = RequestContext(request, {
         'flatpage': f,

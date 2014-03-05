@@ -47,6 +47,12 @@ class FlatPage_i18n(MPTTModel):
     def get_absolute_url(self):
         return self.url
 
+    def get_i18n_title(self, lang):
+        return getattr(self, "title_{}".format(lang))
+
+    def get_i18n_content(self, lang):
+        return getattr(self, "content_{}".format(lang))
+
 
 class MenuItem(MPTTModel):
     WEIGHT = [(i, i) for i in range(-10, 10)]
